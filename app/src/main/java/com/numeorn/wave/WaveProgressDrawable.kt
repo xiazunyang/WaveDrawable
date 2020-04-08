@@ -14,6 +14,8 @@ class WaveProgressDrawable(color: Int) : Drawable() {
 
     private var animatedFraction = 0f
 
+    private var animate = true
+
     //波浪和水的颜色
     var color: Int
         get() = paint.color
@@ -42,13 +44,13 @@ class WaveProgressDrawable(color: Int) : Drawable() {
 
     private var currentProgress = 0f
         set(value) {
-            field = value.round()
+            field = value.round().coerceIn(0f, progress)
         }
 
     //进度
     var progress: Float = 0f
         set(value) {
-            field = value.coerceIn(0f, 1f).round()
+            field = value.round().coerceIn(0f, 1f)
         }
 
     init {
@@ -85,12 +87,13 @@ class WaveProgressDrawable(color: Int) : Drawable() {
         } else if (currentProgress < progress) {
             currentProgress += 0.01f
         }
-
+        //根据是否动画，决定使用哪个值
+        val progress = if (animate) currentProgress else progress
         //重置path
         path.reset()
         //根据进度设置波浪的Y点
         //移动到计算后的X和Y点
-        path.moveTo(from * 2, calculateY(waveWidth))
+        path.moveTo(from * 2, bounds.height() - bounds.height() * progress - waveWidth * surge)
         //从X点依次绘制到自身的宽度为止
         while (from <= bounds.width()) {
             path.rQuadTo(waveWidth * 0.5f, -waveWidth * surge, waveWidth, 0f)
@@ -101,12 +104,6 @@ class WaveProgressDrawable(color: Int) : Drawable() {
         path.lineTo(bounds.width().toFloat(), bounds.height().toFloat())
         path.lineTo(0f, bounds.height().toFloat())
         path.close()
-    }
-
-    private fun calculateY(waveWidth: Float): Float {
-        val height = bounds.height()
-        val y = (height * currentProgress).toInt()
-        return height - y - waveWidth * surge
     }
 
     override fun setAlpha(alpha: Int) {
@@ -123,6 +120,11 @@ class WaveProgressDrawable(color: Int) : Drawable() {
     }
 
     override fun getColorFilter(): ColorFilter? = paint.colorFilter
+
+    fun setProgress(progress: Float, animate: Boolean) {
+        this.progress = progress
+        this.animate = animate
+    }
 
     private companion object {
 
