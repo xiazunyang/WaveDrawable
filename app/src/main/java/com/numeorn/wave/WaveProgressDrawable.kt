@@ -14,7 +14,8 @@ class WaveProgressDrawable(color: Int) : Drawable() {
 
     private var animatedFraction = 0f
 
-    private var animate = true
+    //是否启用动画
+    var animate = true
 
     //波浪和水的颜色
     var color: Int
@@ -120,11 +121,6 @@ class WaveProgressDrawable(color: Int) : Drawable() {
     }
 
     override fun getColorFilter(): ColorFilter? = paint.colorFilter
-
-    fun setProgress(progress: Float, animate: Boolean) {
-        this.progress = progress
-        this.animate = animate
-    }
 
     private companion object {
 
