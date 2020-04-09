@@ -8,13 +8,14 @@ import java.math.RoundingMode
 
 class WaveProgressDrawable(color: Int) : Drawable() {
 
-    private val paint = Paint()
     private val path = Path()
+    private val paint = Paint()
     private val objectAnimator = ObjectAnimator.ofInt(0, 1)
 
+    private var _animate = true
     private var animatedFraction = 0f
 
-    //是否启用动画
+    //动画开关
     var animate = true
 
     //波浪和水的颜色
@@ -25,16 +26,10 @@ class WaveProgressDrawable(color: Int) : Drawable() {
         }
 
     //波浪的高度
-    var surge = 0.25f
-        set(value) {
-            field = value.round().coerceIn(0f, 1f)
-        }
+    var surge = 0.1f
 
     //波浪的宽度
     var waveLength = 0.075f
-        set(value) {
-            field = value.round(3).coerceIn(0.01f, 1f)
-        }
 
     //流动的速度
     var duration
@@ -45,22 +40,23 @@ class WaveProgressDrawable(color: Int) : Drawable() {
 
     private var currentProgress = 0f
         set(value) {
-            field = value.round().coerceIn(0f, progress)
+            field = value.toBigDecimal().setScale(2, RoundingMode.HALF_UP).toFloat()
+                .coerceIn(0f, progress)
         }
 
     //进度
     var progress: Float = 0f
         set(value) {
-            field = value.round().coerceIn(0f, 1f)
+            field = value.coerceIn(0f, 1f)
+                .toBigDecimal().setScale(2, RoundingMode.HALF_UP).toFloat()
         }
 
     init {
         this.color = color
         paint.isAntiAlias = true
         paint.style = Paint.Style.FILL_AND_STROKE
-        duration = 3000
-        //使用属性动画，使一个数据持续变化，并在变化后重新绘制
-        objectAnimator.duration = duration
+
+        duration = 2000
         objectAnimator.interpolator = LinearInterpolator()
         objectAnimator.addUpdateListener {
             animatedFraction = it.animatedFraction
@@ -84,14 +80,19 @@ class WaveProgressDrawable(color: Int) : Drawable() {
         var from = -waveWidth + waveWidth * animatedFraction
         //计算动画进度
         if (currentProgress > progress) {
-            currentProgress -= 0.01f
+            currentProgress -= 0.02f
         } else if (currentProgress < progress) {
-            currentProgress += 0.01f
+            currentProgress += 0.02f
+        } else {
+            //此次动画执行结束后，将animate原来的值还原回去
+            this.animate = _animate
         }
-        //根据是否动画，决定使用哪个值
-        val progress = if (animate) currentProgress else progress
         //重置path
         path.reset()
+
+        //根据是否动画，决定使用哪个值
+        val progress = if (animate) currentProgress else progress
+
         //根据进度设置波浪的Y点
         //移动到计算后的X和Y点
         path.moveTo(from * 2, bounds.height() - bounds.height() * progress - waveWidth * surge)
@@ -122,11 +123,13 @@ class WaveProgressDrawable(color: Int) : Drawable() {
 
     override fun getColorFilter(): ColorFilter? = paint.colorFilter
 
-    private companion object {
-
-        fun Float.round(accuracy: Int = 2) =
-            toBigDecimal().setScale(accuracy, RoundingMode.HALF_UP).toFloat()
-
+    fun setProgress(progress: Float, animate: Boolean) {
+        this.progress = progress
+        if (this.animate != animate) {
+            //备份animate的值，然后修改animate
+            this._animate = this.animate
+            this.animate = animate
+        }
     }
 
 }
