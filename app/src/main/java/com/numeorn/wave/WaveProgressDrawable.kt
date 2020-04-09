@@ -11,6 +11,7 @@ class WaveProgressDrawable(color: Int) : Drawable() {
     private val path = Path()
     private val paint = Paint()
     private val objectAnimator = ObjectAnimator.ofInt(0, 1)
+    private val timerLinearInterpolator = TimerLinearInterpolator(500)
 
     private var _animate = true
     private var animatedFraction = 0f
@@ -78,9 +79,9 @@ class WaveProgressDrawable(color: Int) : Drawable() {
         var from = -waveWidth + waveWidth * animatedFraction
         //计算动画进度
         if (currentProgress > progress) {
-            currentProgress -= 0.01f
+            currentProgress -= timerLinearInterpolator.getInterpolation(currentProgress - progress)
         } else if (currentProgress < progress) {
-            currentProgress += 0.01f
+            currentProgress += timerLinearInterpolator.getInterpolation(progress - currentProgress)
         } else if (animate != _animate) {
             //此次动画执行结束后，将animate原来的值还原回去
             this.animate = _animate
