@@ -29,7 +29,7 @@ class WaveProgressDrawable(color: Int) : Drawable() {
     var surge = 0.1f
 
     //波浪的宽度
-    var waveLength = 0.075f
+    var waveLength = 0.5f
 
     //流动的速度
     var duration
@@ -40,15 +40,13 @@ class WaveProgressDrawable(color: Int) : Drawable() {
 
     private var currentProgress = 0f
         set(value) {
-            field = value.toBigDecimal().setScale(2, RoundingMode.HALF_UP).toFloat()
-                .coerceIn(0f, progress)
+            field = value.round()
         }
 
     //进度
     var progress: Float = 0f
         set(value) {
-            field = value.coerceIn(0f, 1f)
-                .toBigDecimal().setScale(2, RoundingMode.HALF_UP).toFloat()
+            field = value.coerceIn(0f, 1f).round()
         }
 
     init {
@@ -80,10 +78,10 @@ class WaveProgressDrawable(color: Int) : Drawable() {
         var from = -waveWidth + waveWidth * animatedFraction
         //计算动画进度
         if (currentProgress > progress) {
-            currentProgress -= 0.02f
+            currentProgress -= 0.01f
         } else if (currentProgress < progress) {
-            currentProgress += 0.02f
-        } else {
+            currentProgress += 0.01f
+        } else if (animate != _animate) {
             //此次动画执行结束后，将animate原来的值还原回去
             this.animate = _animate
         }
@@ -130,6 +128,12 @@ class WaveProgressDrawable(color: Int) : Drawable() {
             this._animate = this.animate
             this.animate = animate
         }
+    }
+
+    private companion object {
+
+        fun Float.round() = toBigDecimal().setScale(2, RoundingMode.HALF_UP).toFloat()
+
     }
 
 }
